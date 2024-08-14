@@ -46,9 +46,13 @@ class queueList {
 				this.playNext();
 			}
 		} else {
-			this.connection.destroy();
-			guildQueueMap[this.guildId] = undefined;
+			this.destroy();
 		}
+	}
+
+	destroy() {
+		this.connection.destroy();
+		guildQueueMap[this.guildId] = undefined;
 	}
 
 	constructor(links, interaction) {
@@ -70,8 +74,7 @@ class queueList {
 			this.connection.on(
 				VoiceConnectionStatus.Disconnected,
 				(oldState, newState) => {
-					this.connection.destroy();
-					guildQueueMap[this.guildId] = undefined;
+					this.destroy();
 				}
 			);
 
@@ -79,8 +82,7 @@ class queueList {
 				if (this.links.length > 0) {
 					this.playNext();
 				} else {
-					this.connection.destroy();
-					guildQueueMap[this.guildId] = undefined;
+					this.destroy();
 				}
 			});
 		})();
@@ -190,8 +192,7 @@ client.on("interactionCreate", async (interaction) => {
 	}
 
 	if (interaction.commandName === "stop") {
-		guildQueueMap[interaction.guild.id].connection.destroy();
-		guildQueueMap[interaction.guild.id] = undefined;
+		guildQueueMap[interaction.guild.id].destroy();
 		interaction.reply("Stopping Song");
 	}
 
