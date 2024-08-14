@@ -16,6 +16,47 @@ import ytstream from "yt-stream";
 // Load environment variables from a .env file
 dotenv.config();
 
+class queueList {
+	links = [];
+
+	async playNext() {
+		const stream = await ytstream.stream(this.links.shift(), {
+			quality: "high",
+			type: "audio",
+			highWaterMark: 1048576 * 32,
+			download: true,
+		});
+		const resource = createAudioResource(stream.stream);
+		this.connection.subscribe(this.player);
+		this.player.play(resource);
+
+		this.player.on(AudioPlayerStatus.Idle, (oldState, newState) => {
+			if (this.links.length > 0) {
+				this.playNext();
+			} else {
+				this.connection.destroy();
+			}
+		});
+	}
+
+	constructor(links, interaction) {
+		(async () => {
+			this.connection = joinVoiceChannel({
+				channelId: interaction.member.voice.channel.id,
+				guildId: interaction.guild.id,
+				adapterCreator: interaction.guild.voiceAdapterCreator,
+			});
+
+			this.links = links;
+			this.player = createAudioPlayer();
+
+			this.playNext();
+		})();
+	}
+}
+
+let guildQueueMap = {};
+
 let TOKEN = process.env.TOKEN; // Make sure to set this in your .env file
 
 const commands = [
@@ -54,6 +95,19 @@ const rest = new REST({ version: "10" }).setToken(TOKEN);
 const client = new Client({
 	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
 });
+
+async function AddOrPlaySong(link, interaction) {
+	let guildId = interaction.guild.id;
+	if (guildQueueMap[guildId] === undefined) {
+		guildQueueMap[guildId] = new queueList([link], interaction);
+		await interaction.reply("Playing Song");
+	} else {
+		guildQueueMap[guildId].links.push(link);
+		await interaction.reply("Added to queue");
+	}
+
+	console.log("Playing Audio");
+}
 
 client.on("ready", () => {
 	console.log(`Logged in as ${client.user.tag}!`);
@@ -122,34 +176,8 @@ client.on("interactionCreate", async (interaction) => {
 	if (!interaction.isCommand()) return;
 
 	if (interaction.commandName === "link") {
-		joinVoiceChannel({
-			channelId: interaction.member.voice.channel.id,
-			guildId: interaction.guild.id,
-			adapterCreator: interaction.guild.voiceAdapterCreator,
-		});
-		const stream = await ytstream.stream(
-			interaction.options._hoistedOptions[0].value,
-			{
-				quality: "high",
-				type: "audio",
-				highWaterMark: 1048576 * 32,
-				download: true,
-			}
-		);
-
-		const resource = createAudioResource(stream.stream);
-
-		const player = createAudioPlayer();
-
-		const connection = getVoiceConnection(interaction.guild.id);
-
-		connection.subscribe(player);
-
-		player.play(resource);
-
-		console.log("Playing Audio");
-
-		await interaction.reply("Playing Song");
+		let link = interaction.options._hoistedOptions[0].value;
+		AddOrPlaySong(link, interaction);
 	}
 });
 
