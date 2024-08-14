@@ -146,6 +146,36 @@ client.on("ready", () => {
 client.on("interactionCreate", async (interaction) => {
 	if (!interaction.isCommand()) return;
 
+	if (interaction.commandName === "resume") {
+		guildQueueMap[interaction.guild.id].player.unpause();
+		interaction.reply("resuming song");
+	}
+
+	if (interaction.commandName === "stop") {
+		guildQueueMap[interaction.guild.id].connection.destroy();
+		guildQueueMap[interaction.guild.id] = undefined;
+		interaction.reply("Stopping Song");
+	}
+
+	if (interaction.commandName === "pause") {
+		guildQueueMap[interaction.guild.id].player.pause();
+		interaction.reply("pausing song");
+	}
+
+	if (interaction.commandName === "skip") {
+		if (guildQueueMap[interaction.guild.id] === undefined) {
+			interaction.reply("No Song Playing");
+		} else {
+			guildQueueMap[interaction.guild.id].playNext();
+			interaction.reply("Skipping Song");
+		}
+	}
+
+	if (interaction.commandName === "link") {
+		let link = interaction.options._hoistedOptions[0].value;
+		addOrPlaySong(link, interaction);
+	}
+
 	if (interaction.commandName === "play") {
 		let searchQuery = interaction.options._hoistedOptions[0].value;
 		const results = await ytstream.search(searchQuery);
@@ -198,56 +228,6 @@ client.on("interactionCreate", async (interaction) => {
 				components: [],
 			});
 		}
-	}
-});
-
-client.on("interactionCreate", async (interaction) => {
-	if (!interaction.isCommand()) return;
-
-	if (interaction.commandName === "link") {
-		let link = interaction.options._hoistedOptions[0].value;
-		addOrPlaySong(link, interaction);
-	}
-});
-
-client.on("interactionCreate", async (interaction) => {
-	if (!interaction.isCommand()) return;
-
-	if (interaction.commandName === "skip") {
-		if (guildQueueMap[interaction.guild.id] === undefined) {
-			interaction.reply("No Song Playing");
-		} else {
-			guildQueueMap[interaction.guild.id].playNext();
-			interaction.reply("Skipping Song");
-		}
-	}
-});
-
-client.on("interactionCreate", async (interaction) => {
-	if (!interaction.isCommand()) return;
-
-	if (interaction.commandName === "pause") {
-		guildQueueMap[interaction.guild.id].player.pause();
-		interaction.reply("pausing song");
-	}
-});
-
-client.on("interactionCreate", async (interaction) => {
-	if (!interaction.isCommand()) return;
-
-	if (interaction.commandName === "resume") {
-		guildQueueMap[interaction.guild.id].player.unpause();
-		interaction.reply("resuming song");
-	}
-});
-
-client.on("interactionCreate", async (interaction) => {
-	if (!interaction.isCommand()) return;
-
-	if (interaction.commandName === "stop") {
-		guildQueueMap[interaction.guild.id].connection.destroy();
-		guildQueueMap[interaction.guild.id] = undefined;
-		interaction.reply("Stopping Song");
 	}
 });
 
