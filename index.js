@@ -219,6 +219,7 @@ client.on("interactionCreate", async (interaction) => {
 	if (interaction.commandName === "stop") {
 		guildQueueMap[interaction.guild.id].connection.destroy();
 		guildQueueMap[interaction.guild.id] = undefined;
+		interaction.reply("Stopping Song");
 	}
 });
 
