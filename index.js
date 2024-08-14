@@ -77,6 +77,10 @@ const commands = [
 		name: "resume",
 		description: "resumes music",
 	},
+	{
+		name: "stop",
+		description: "stops music",
+	},
 
 	new SlashCommandBuilder()
 		.setName("link")
@@ -206,6 +210,15 @@ client.on("interactionCreate", async (interaction) => {
 	if (interaction.commandName === "resume") {
 		guildQueueMap[interaction.guild.id].player.unpause();
 		interaction.reply("resuming song");
+	}
+});
+
+client.on("interactionCreate", async (interaction) => {
+	if (!interaction.isCommand()) return;
+
+	if (interaction.commandName === "stop") {
+		guildQueueMap[interaction.guild.id].connection.destroy();
+		guildQueueMap[interaction.guild.id] = undefined;
 	}
 });
 
