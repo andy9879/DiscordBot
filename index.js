@@ -28,15 +28,20 @@ class queueList {
 
 	async playNext() {
 		if (this.links.length > 0) {
-			const stream = await ytstream.stream(this.links.shift(), {
-				quality: "high",
-				type: "audio",
-				highWaterMark: 1048576 * 32,
-				download: true,
-			});
-			const resource = createAudioResource(stream.stream);
-			this.connection.subscribe(this.player);
-			this.player.play(resource);
+			try {
+				const stream = await ytstream.stream(this.links.shift(), {
+					quality: "high",
+					type: "audio",
+					highWaterMark: 1048576 * 32,
+					download: true,
+				});
+				const resource = createAudioResource(stream.stream);
+				this.connection.subscribe(this.player);
+				this.player.play(resource);
+			} catch {
+				console.log("Invalid Url");
+				this.playNext();
+			}
 		} else {
 			this.connection.destroy();
 			guildQueueMap[this.guildId] = undefined;
