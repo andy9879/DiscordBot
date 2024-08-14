@@ -50,6 +50,18 @@ class queueList {
 			this.links = links;
 			this.player = createAudioPlayer();
 
+			this.connection.on("stateChange", (oldState, newState) => {
+				console.log(
+					`Connection transitioned from ${oldState.status} to ${newState.status}`
+				);
+			});
+
+			this.player.on("stateChange", (oldState, newState) => {
+				console.log(
+					`Audio player transitioned from ${oldState.status} to ${newState.status}`
+				);
+			});
+
 			this.playNext();
 		})();
 	}
@@ -68,6 +80,15 @@ const commands = [
 		name: "play",
 		description: "plays music",
 	},
+	{
+		name: "pause",
+		description: "pause music",
+	},
+	{
+		name: "resume",
+		description: "resumes music",
+	},
+
 	new SlashCommandBuilder()
 		.setName("link")
 		.setDescription("Plays song from youtube link")
@@ -96,7 +117,7 @@ const client = new Client({
 	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
 });
 
-async function AddOrPlaySong(link, interaction) {
+async function addOrPlaySong(link, interaction) {
 	let guildId = interaction.guild.id;
 	if (guildQueueMap[guildId] === undefined) {
 		guildQueueMap[guildId] = new queueList([link], interaction);
@@ -177,7 +198,23 @@ client.on("interactionCreate", async (interaction) => {
 
 	if (interaction.commandName === "link") {
 		let link = interaction.options._hoistedOptions[0].value;
-		AddOrPlaySong(link, interaction);
+		addOrPlaySong(link, interaction);
+	}
+});
+
+client.on("interactionCreate", async (interaction) => {
+	if (!interaction.isCommand()) return;
+
+	if (interaction.commandName === "pause") {
+		guildQueueMap[interaction.guild.id].player.pause();
+	}
+});
+
+client.on("interactionCreate", async (interaction) => {
+	if (!interaction.isCommand()) return;
+
+	if (interaction.commandName === "resume") {
+		guildQueueMap[interaction.guild.id].player.unpause();
 	}
 });
 
