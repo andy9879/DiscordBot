@@ -1,5 +1,5 @@
 import { REST, Routes } from "discord.js";
-import { Client, GatewayIntentBits } from "discord.js";
+import { Client, GatewayIntentBits, SlashCommandBuilder } from "discord.js";
 import dotenv from "dotenv";
 import {
 	joinVoiceChannel,
@@ -27,6 +27,12 @@ const commands = [
 		name: "play",
 		description: "plays music",
 	},
+	new SlashCommandBuilder()
+		.setName("link")
+		.setDescription("Plays song from youtube link")
+		.addStringOption((option) =>
+			option.setName("link").setDescription("link to youtube")
+		),
 ];
 
 const rest = new REST({ version: "10" }).setToken(TOKEN);
@@ -109,6 +115,41 @@ client.on("interactionCreate", async (interaction) => {
 
 	if (interaction.commandName === "ping") {
 		await interaction.reply("Pong!");
+	}
+});
+
+client.on("interactionCreate", async (interaction) => {
+	if (!interaction.isCommand()) return;
+
+	if (interaction.commandName === "link") {
+		joinVoiceChannel({
+			channelId: interaction.member.voice.channel.id,
+			guildId: interaction.guild.id,
+			adapterCreator: interaction.guild.voiceAdapterCreator,
+		});
+		const stream = await ytstream.stream(
+			interaction.options._hoistedOptions[0].value,
+			{
+				quality: "high",
+				type: "audio",
+				highWaterMark: 1048576 * 32,
+				download: true,
+			}
+		);
+
+		const resource = createAudioResource(stream.stream);
+
+		const player = createAudioPlayer();
+
+		const connection = getVoiceConnection(interaction.guild.id);
+
+		connection.subscribe(player);
+
+		player.play(resource);
+
+		console.log("Playing Audio");
+
+		await interaction.reply("Playing Song");
 	}
 });
 
