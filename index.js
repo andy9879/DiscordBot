@@ -236,6 +236,7 @@ client.on("interactionCreate", async (interaction) => {
 	}
 
 	if (interaction.commandName === "play") {
+		//TODO Handle Query with less then 4 results
 		if (interaction.options._hoistedOptions[0] == undefined) {
 			interaction.reply("🖕🏼");
 			return;
