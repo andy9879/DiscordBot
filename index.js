@@ -196,6 +196,7 @@ client.on("interactionCreate", async (interaction) => {
 
 	if (interaction.commandName === "pause") {
 		guildQueueMap[interaction.guild.id].player.pause();
+		interaction.reply("pausing song");
 	}
 });
 
@@ -204,6 +205,7 @@ client.on("interactionCreate", async (interaction) => {
 
 	if (interaction.commandName === "resume") {
 		guildQueueMap[interaction.guild.id].player.unpause();
+		interaction.reply("resuming song");
 	}
 });
 
