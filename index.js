@@ -18,7 +18,7 @@ import {
 import { createReadStream } from "node:fs";
 import { join } from "node:path";
 import { createAudioResource, StreamType } from "@discordjs/voice";
-import ytstream from "yt-stream";
+import ytstream from "./YT-Stream/index.js";
 import { channel } from "node:diagnostics_channel";
 
 // Load environment variables from a .env file
