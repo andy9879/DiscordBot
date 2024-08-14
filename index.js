@@ -11,6 +11,7 @@ import {
 import { createReadStream } from "node:fs";
 import { join } from "node:path";
 import { createAudioResource, StreamType } from "@discordjs/voice";
+import ytstream from "yt-stream";
 
 // Load environment variables from a .env file
 dotenv.config();
@@ -65,8 +66,17 @@ client.on("interactionCreate", async (interaction) => {
 			guildId: interaction.guild.id,
 			adapterCreator: interaction.guild.voiceAdapterCreator,
 		});
+		const stream = await ytstream.stream(
+			`https://www.youtube.com/watch?v=dQw4w9WgXcQ`,
+			{
+				quality: "high",
+				type: "audio",
+				highWaterMark: 1048576 * 32,
+				download: true,
+			}
+		);
 
-		const resource = createAudioResource("./audiofile.mp3");
+		const resource = createAudioResource(stream.stream);
 
 		const player = createAudioPlayer();
 
