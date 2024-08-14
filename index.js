@@ -1,5 +1,12 @@
 import { REST, Routes } from "discord.js";
-import { Client, GatewayIntentBits, SlashCommandBuilder } from "discord.js";
+import {
+	Client,
+	GatewayIntentBits,
+	SlashCommandBuilder,
+	ActionRowBuilder,
+	ButtonBuilder,
+	ButtonStyle,
+} from "discord.js";
 import dotenv from "dotenv";
 import {
 	joinVoiceChannel,
@@ -61,14 +68,12 @@ let guildQueueMap = {};
 let TOKEN = process.env.TOKEN; // Make sure to set this in your .env file
 
 const commands = [
-	{
-		name: "ping",
-		description: "Replies with Pong!",
-	},
-	{
-		name: "play",
-		description: "plays music",
-	},
+	new SlashCommandBuilder()
+		.setName("play")
+		.setDescription("Plays song from youtube query")
+		.addStringOption((option) =>
+			option.setName("query").setDescription("Search Query")
+		),
 	{
 		name: "pause",
 		description: "pause music",
@@ -133,56 +138,57 @@ client.on("interactionCreate", async (interaction) => {
 	if (!interaction.isCommand()) return;
 
 	if (interaction.commandName === "play") {
-		let userId = interaction.user.id;
+		let searchQuery = interaction.options._hoistedOptions[0].value;
+		const results = await ytstream.search(searchQuery);
 
-		joinVoiceChannel({
-			channelId: interaction.member.voice.channel.id,
-			guildId: interaction.guild.id,
-			adapterCreator: interaction.guild.voiceAdapterCreator,
-		});
-		const stream = await ytstream.stream(
-			`https://www.youtube.com/watch?v=dQw4w9WgXcQ`,
-			{
-				quality: "high",
-				type: "audio",
-				highWaterMark: 1048576 * 32,
-				download: true,
-			}
+		let resultsText = "";
+
+		for (let i = 0; i < 4; i++) {
+			resultsText += `${i + 1} : ${results[i].title}\n Author : ${
+				results[i].author
+			}\n\n`;
+		}
+
+		const row = new ActionRowBuilder().addComponents(
+			new ButtonBuilder()
+				.setCustomId("play-0")
+				.setStyle(ButtonStyle.Primary)
+				.setLabel("1"),
+			new ButtonBuilder()
+				.setCustomId("play-1")
+				.setStyle(ButtonStyle.Primary)
+				.setLabel("2"),
+			new ButtonBuilder()
+				.setCustomId("play-2")
+				.setStyle(ButtonStyle.Primary)
+				.setLabel("3"),
+			new ButtonBuilder()
+				.setCustomId("play-3")
+				.setStyle(ButtonStyle.Primary)
+				.setLabel("4")
 		);
 
-		const resource = createAudioResource(stream.stream);
-
-		const player = createAudioPlayer();
-
-		const connection = getVoiceConnection(interaction.guild.id);
-
-		connection.on("stateChange", (oldState, newState) => {
-			console.log(
-				`Connection transitioned from ${oldState.status} to ${newState.status}`
-			);
+		const response = await interaction.reply({
+			content: resultsText,
+			components: [row],
 		});
 
-		player.on("stateChange", (oldState, newState) => {
-			console.log(
-				`Audio player transitioned from ${oldState.status} to ${newState.status}`
-			);
-		});
+		const collectorFilter = (i) => i.user.id === interaction.user.id;
 
-		connection.subscribe(player);
+		try {
+			const confirmation = await response.awaitMessageComponent({
+				filter: collectorFilter,
+				time: 60_000,
+			});
+			let playNumber = parseInt(confirmation.customId.replace("play-", ""));
 
-		player.play(resource);
-
-		console.log(connection.state.status);
-
-		console.log("Playing Audio");
-	}
-});
-
-client.on("interactionCreate", async (interaction) => {
-	if (!interaction.isCommand()) return;
-
-	if (interaction.commandName === "ping") {
-		await interaction.reply("Pong!");
+			addOrPlaySong(results[playNumber].url, confirmation);
+		} catch (e) {
+			await interaction.editReply({
+				content: " not received within 1 minute, cancelling",
+				components: [],
+			});
+		}
 	}
 });
 
