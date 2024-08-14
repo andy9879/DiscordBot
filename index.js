@@ -29,18 +29,11 @@ class queueList {
 		const resource = createAudioResource(stream.stream);
 		this.connection.subscribe(this.player);
 		this.player.play(resource);
-
-		this.player.on(AudioPlayerStatus.Idle, (oldState, newState) => {
-			if (this.links.length > 0) {
-				this.playNext();
-			} else {
-				this.connection.destroy();
-			}
-		});
 	}
 
 	constructor(links, interaction) {
 		(async () => {
+			this.guildId = interaction.guild.id;
 			this.connection = joinVoiceChannel({
 				channelId: interaction.member.voice.channel.id,
 				guildId: interaction.guild.id,
@@ -50,19 +43,15 @@ class queueList {
 			this.links = links;
 			this.player = createAudioPlayer();
 
-			this.connection.on("stateChange", (oldState, newState) => {
-				console.log(
-					`Connection transitioned from ${oldState.status} to ${newState.status}`
-				);
-			});
-
-			this.player.on("stateChange", (oldState, newState) => {
-				console.log(
-					`Audio player transitioned from ${oldState.status} to ${newState.status}`
-				);
-			});
-
 			this.playNext();
+
+			this.connection.on(
+				VoiceConnectionStatus.Disconnected,
+				(oldState, newState) => {
+					this.connection.destroy();
+					guildQueueMap[this.guildId] = undefined;
+				}
+			);
 		})();
 	}
 }
