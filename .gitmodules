@@ -1,0 +1,3 @@
+[submodule "YT-Stream"]
+	path = YT-Stream
+	url = git@github.com:andy9879/YT-Stream.git
