@@ -146,7 +146,11 @@ const rest = new REST({ version: "10" }).setToken(TOKEN);
 })();
 
 const client = new Client({
-	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
+	intents: [
+		GatewayIntentBits.Guilds,
+		GatewayIntentBits.GuildVoiceStates,
+		GatewayIntentBits.GuildMessages,
+	],
 });
 
 async function addOrPlaySong(link, interaction, reply = true) {
@@ -166,6 +170,15 @@ client.on("ready", () => {
 	console.log(`Logged in as ${client.user.tag}!`);
 
 	client.on("message", (message) => {});
+});
+// ...
+client.on("messageCreate", async (msg) => {
+	if (
+		msg.author.globalName == "theycallmekyle" &&
+		Math.floor(Math.random() * 100) == 1
+	) {
+		msg.react("🏳️‍🌈");
+	}
 });
 
 client.on("interactionCreate", async (interaction) => {
