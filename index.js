@@ -177,7 +177,7 @@ client.on("ready", () => {
 client.on("messageCreate", async (msg) => {
 	if (
 		msg.author.globalName == "theycallmekyle" &&
-		Math.floor(Math.random() * 100) == 1
+		Math.floor(Math.random() * 10) == 1
 	) {
 		msg.react("🏳️‍🌈");
 	}
