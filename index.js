@@ -121,6 +121,12 @@ const commands = [
 		.addStringOption((option) =>
 			option.setName("link").setDescription("link to youtube")
 		),
+	new SlashCommandBuilder()
+		.setName("playlist")
+		.setDescription("Plays songs from youtube playlist")
+		.addStringOption((option) =>
+			option.setName("link").setDescription("link to youtube playlist")
+		),
 ];
 
 const rest = new REST({ version: "10" }).setToken(TOKEN);
@@ -143,14 +149,14 @@ const client = new Client({
 	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
 });
 
-async function addOrPlaySong(link, interaction) {
+async function addOrPlaySong(link, interaction, reply = true) {
 	let guildId = interaction.guild.id;
 	if (guildQueueMap[guildId] === undefined) {
 		guildQueueMap[guildId] = new queueList([link], interaction);
-		await interaction.reply("Playing Song");
+		if (reply) interaction.reply("Playing Song");
 	} else {
 		guildQueueMap[guildId].links.push(link);
-		await interaction.reply("Added to queue");
+		if (reply) interaction.reply("Added to queue");
 	}
 
 	console.log("Playing Audio");
@@ -246,6 +252,65 @@ client.on("interactionCreate", async (interaction) => {
 				content: " not received within 1 minute, cancelling",
 				components: [],
 			});
+		}
+	}
+
+	if (interaction.commandName === "playlist") {
+		let url = interaction.options._hoistedOptions[0].value;
+		try {
+			let info = await ytstream.getPlaylist(url);
+			let resultsText = `${info.title}\nAuthor : ${info.author}\nNumber Of Songs : ${info.videos.length}`;
+
+			const row = new ActionRowBuilder().addComponents(
+				new ButtonBuilder()
+					.setCustomId("play")
+					.setStyle(ButtonStyle.Primary)
+					.setLabel("Play"),
+				new ButtonBuilder()
+					.setCustomId("shuffle")
+					.setStyle(ButtonStyle.Primary)
+					.setLabel("Shuffle")
+			);
+
+			const response = await interaction.reply({
+				content: resultsText,
+				components: [row],
+			});
+
+			const collectorFilter = (i) => i.user.id === interaction.user.id;
+
+			try {
+				const confirmation = await response.awaitMessageComponent({
+					filter: collectorFilter,
+					time: 60_000,
+				});
+				if (confirmation.customId == "play") {
+					info.videos.forEach((song) => {
+						addOrPlaySong(song.video_url, confirmation, false);
+					});
+					confirmation.reply("added Songs");
+				} else {
+					for (let i = info.videos.length - 1; i > 0; i--) {
+						let j = Math.floor(Math.random() * (i + 1));
+						let temp = info.videos[i];
+						info.videos[i] = info.videos[j];
+						info.videos[j] = temp;
+					}
+
+					info.videos.forEach((song) => {
+						addOrPlaySong(song.video_url, confirmation, false);
+					});
+					confirmation.reply("Added and shuffled Songs");
+				}
+			} catch (e) {
+				await interaction.editReply({
+					content: " not received within 1 minute, cancelling",
+					components: [],
+				});
+			}
+		} catch {
+			console.log("Invalid Playlist");
+			interaction.reply("🖕🏿");
 		}
 	}
 });
