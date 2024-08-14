@@ -219,7 +219,7 @@ client.on("interactionCreate", async (interaction) => {
 	if (interaction.commandName === "skip") {
 		let queue = guildQueueMap[interaction.guild.id];
 		queue != undefined
-			? queue.player.playNext()
+			? queue.playNext()
 			: client.channels
 					.fetch(interaction.channel.id)
 					.then((channel) => channel.send("🖕🏽"));
