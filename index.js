@@ -27,15 +27,20 @@ class queueList {
 	links = [];
 
 	async playNext() {
-		const stream = await ytstream.stream(this.links.shift(), {
-			quality: "high",
-			type: "audio",
-			highWaterMark: 1048576 * 32,
-			download: true,
-		});
-		const resource = createAudioResource(stream.stream);
-		this.connection.subscribe(this.player);
-		this.player.play(resource);
+		if (this.links.length > 0) {
+			const stream = await ytstream.stream(this.links.shift(), {
+				quality: "high",
+				type: "audio",
+				highWaterMark: 1048576 * 32,
+				download: true,
+			});
+			const resource = createAudioResource(stream.stream);
+			this.connection.subscribe(this.player);
+			this.player.play(resource);
+		} else {
+			this.connection.destroy();
+			guildQueueMap[this.guildId] = undefined;
+		}
 	}
 
 	constructor(links, interaction) {
@@ -85,6 +90,10 @@ const commands = [
 	{
 		name: "stop",
 		description: "stops music",
+	},
+	{
+		name: "skip",
+		description: "skips song",
 	},
 
 	new SlashCommandBuilder()
@@ -198,6 +207,19 @@ client.on("interactionCreate", async (interaction) => {
 	if (interaction.commandName === "link") {
 		let link = interaction.options._hoistedOptions[0].value;
 		addOrPlaySong(link, interaction);
+	}
+});
+
+client.on("interactionCreate", async (interaction) => {
+	if (!interaction.isCommand()) return;
+
+	if (interaction.commandName === "skip") {
+		if (guildQueueMap[interaction.guild.id] === undefined) {
+			interaction.reply("No Song Playing");
+		} else {
+			guildQueueMap[interaction.guild.id].playNext();
+			interaction.reply("Skipping Song");
+		}
 	}
 });
 
