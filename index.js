@@ -197,11 +197,19 @@ client.on("interactionCreate", async (interaction) => {
 	}
 
 	if (interaction.commandName === "link") {
+		if (interaction.options._hoistedOptions[0] == undefined) {
+			interaction.reply("🖕🏼");
+			return;
+		}
 		let link = interaction.options._hoistedOptions[0].value;
 		addOrPlaySong(link, interaction);
 	}
 
 	if (interaction.commandName === "play") {
+		if (interaction.options._hoistedOptions[0] == undefined) {
+			interaction.reply("🖕🏼");
+			return;
+		}
 		let searchQuery = interaction.options._hoistedOptions[0].value;
 		const results = await ytstream.search(searchQuery);
 
@@ -256,6 +264,10 @@ client.on("interactionCreate", async (interaction) => {
 	}
 
 	if (interaction.commandName === "playlist") {
+		if (interaction.options._hoistedOptions[0] == undefined) {
+			interaction.reply("🖕🏼");
+			return;
+		}
 		let url = interaction.options._hoistedOptions[0].value;
 		try {
 			let info = await ytstream.getPlaylist(url);
