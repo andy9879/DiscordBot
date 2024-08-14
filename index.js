@@ -19,6 +19,7 @@ import { createReadStream } from "node:fs";
 import { join } from "node:path";
 import { createAudioResource, StreamType } from "@discordjs/voice";
 import ytstream from "yt-stream";
+import { channel } from "node:diagnostics_channel";
 
 // Load environment variables from a .env file
 dotenv.config();
@@ -40,6 +41,8 @@ class queueList {
 				this.player.play(resource);
 			} catch {
 				console.log("Invalid Url");
+				const channel = await client.channels.fetch(this.channelId);
+				channel.send("🖕");
 				this.playNext();
 			}
 		} else {
@@ -50,6 +53,8 @@ class queueList {
 
 	constructor(links, interaction) {
 		(async () => {
+			this.channelId = interaction.channel.id;
+
 			this.guildId = interaction.guild.id;
 			this.connection = joinVoiceChannel({
 				channelId: interaction.member.voice.channel.id,
@@ -69,6 +74,15 @@ class queueList {
 					guildQueueMap[this.guildId] = undefined;
 				}
 			);
+
+			this.player.on(AudioPlayerStatus.Idle, (oldState, newState) => {
+				if (this.links.length > 0) {
+					this.playNext();
+				} else {
+					this.connection.destroy();
+					guildQueueMap[this.guildId] = undefined;
+				}
+			});
 		})();
 	}
 }
