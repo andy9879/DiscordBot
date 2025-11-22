@@ -7,7 +7,7 @@
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"debug": "node --inspect=0.0.0.0:9229 --nolazy index.js",
-    "run" : "node index.js"
+		"run": "node index.js"
 	},
 	"author": "",
 	"license": "ISC",
@@ -17,6 +17,8 @@
 		"dotenv": "^16.4.5",
 		"fs": "0.0.1-security",
 		"libsodium-wrappers": "^0.7.14",
-		"yt-stream": "^1.7.3"
+		"play-dl": "^1.9.7",
+		"yt-stream": "^1.7.3",
+		"ytdl-core": "^4.11.5"
 	}
 }

@@ -1,6 +1,7 @@
 import { REST, Routes } from "discord.js";
 import { exec, spawn } from "node:child_process";
 
+import playDl from "play-dl";
 import {
 	Client,
 	GatewayIntentBits,
@@ -32,17 +33,17 @@ class queueList {
 	async playNext() {
 		if (this.links.length > 0) {
 			try {
-				const stream = await ytstream.stream(this.links.shift(), {
-					quality: "high",
-					type: "audio",
-					highWaterMark: 1048576 * 32,
-					download: true,
-				});
+				let linkToPlay = this.links.shift();
+				console.log(linkToPlay);
+				let yt_info = await playDl.video_info(linkToPlay);
+				console.log(yt_info.video_details.title);
+				const stream = await playDl.stream(linkToPlay);
 				const resource = createAudioResource(stream.stream);
 				this.connection.subscribe(this.player);
 				this.player.play(resource);
-			} catch {
+			} catch (err) {
 				console.log("Invalid Url");
+				console.log(err);
 				const channel = await client.channels.fetch(this.channelId);
 				channel.send("🖕");
 				this.playNext();
@@ -163,6 +164,9 @@ const client = new Client({
 		GatewayIntentBits.GuildVoiceStates,
 		GatewayIntentBits.GuildMessages,
 	],
+	rest: {
+		timeout: 240000,
+	},
 });
 
 async function addOrPlaySong(link, interaction, reply = true) {

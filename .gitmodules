@@ -1,3 +1,6 @@
 [submodule "YT-Stream"]
 	path = YT-Stream
 	url = git@github.com:andy9879/YT-Stream.git
+[submodule "YT-Stream-Heavy-Weight"]
+	path = YT-Stream-Heavy-Weight
+	url = git@github.com:andy9879/YT-Stream-Heavy-Weight.git
