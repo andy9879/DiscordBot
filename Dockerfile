@@ -41,3 +41,5 @@ RUN apt install -y ffmpeg
 
 ## install nodemon
 RUN yarn global add nodemon
+
+EXPOSE 9229

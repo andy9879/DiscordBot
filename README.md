@@ -16,4 +16,4 @@ TOKEN=12345678
 
 `docker build -t discord-bot:latest .`
 
-`docker run -it --rm --mount type=bind,src=$(pwd),dst=/app/ discord-bot:latest`
+`docker run -it --rm -p 9229:9229 --mount type=bind,src=$(pwd),dst=/app/ discord-bot:latest`
