@@ -1,5 +1,5 @@
 import { REST, Routes } from "discord.js";
-import { exec, spawn } from 'node:child_process';
+import { exec, spawn } from "node:child_process";
 
 import {
 	Client,
@@ -178,11 +178,12 @@ async function addOrPlaySong(link, interaction, reply = true) {
 	console.log("Playing Audio");
 }
 
-client.on("ready", () => {
+client.on("clientReady", () => {
 	console.log(`Logged in as ${client.user.tag}!`);
 
 	client.on("message", (message) => {});
 });
+
 // ...
 client.on("messageCreate", async (msg) => {
 	if (
@@ -367,15 +368,18 @@ client.on("interactionCreate", async (interaction) => {
 		}
 	}
 
-	if(interaction.commandName === "startminecraft"){
-		exec("cd /home/nacatech/Gameservers/Scouts\ War\ Modpack\ Remastered && ./run.sh",((err, stdout, stderr) => {
-			console.log(stdout)
-		}))
+	if (interaction.commandName === "startminecraft") {
+		exec(
+			"cd /home/nacatech/Gameservers/Scouts War Modpack Remastered && ./run.sh",
+			(err, stdout, stderr) => {
+				console.log(stdout);
+			}
+		);
 
-		console.log("starting minecraft server")
+		console.log("starting minecraft server");
 	}
-	if(interaction.commandName === "stopminecraft"){
-		exec("screen -S minecraft -X kill'")
+	if (interaction.commandName === "stopminecraft") {
+		exec("screen -S minecraft -X kill'");
 	}
 });
 
