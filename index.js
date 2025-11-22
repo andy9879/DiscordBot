@@ -1,4 +1,6 @@
 import { REST, Routes } from "discord.js";
+import { exec, spawn } from 'node:child_process';
+
 import {
 	Client,
 	GatewayIntentBits,
@@ -115,6 +117,14 @@ const commands = [
 	{
 		name: "skip",
 		description: "skips song",
+	},
+	{
+		name: "startminecraft",
+		description: "start minecraft server",
+	},
+	{
+		name: "stopminecraft",
+		description: "stops minecraft server",
 	},
 
 	new SlashCommandBuilder()
@@ -355,6 +365,17 @@ client.on("interactionCreate", async (interaction) => {
 			console.log("Invalid Playlist");
 			interaction.reply("🖕🏿");
 		}
+	}
+
+	if(interaction.commandName === "startminecraft"){
+		exec("cd /home/nacatech/Gameservers/Scouts\ War\ Modpack\ Remastered && ./run.sh",((err, stdout, stderr) => {
+			console.log(stdout)
+		}))
+
+		console.log("starting minecraft server")
+	}
+	if(interaction.commandName === "stopminecraft"){
+		exec("screen -S minecraft -X kill'")
 	}
 });
 
